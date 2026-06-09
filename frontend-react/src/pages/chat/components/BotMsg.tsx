@@ -7,6 +7,7 @@ import rehypeHighlight from 'rehype-highlight'
 import { Bot, Copy, Plus, AlertCircle } from 'lucide-react'
 import type { ChatMessage } from '@/types'
 import { AgentStreamDisplay } from './AgentStreamDisplay'
+import { useUIStore } from '@/stores/uiStore'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github.css'
 
@@ -37,7 +38,18 @@ export function BotMsg({ content, session, isStreaming, onScrollBottom }: BotMsg
   }
 
   const handleAddToKnowledge = () => {
-    // TODO: Implement add to knowledge base
+    const actualContent = content.trim()
+    if (!actualContent) {
+      alert(t('chat.emptyContentWarning'))
+      return
+    }
+
+    const question = ((session as any).userQuery || '').trim()
+    const manualTitle = question ? question.substring(0, 50) + (question.length > 50 ? '...' : '') : 'Untitled'
+    const manualContent = `## ${manualTitle}\n\n${actualContent}`
+
+    const uiStore = useUIStore.getState()
+    uiStore.openManualEditor('create', undefined, undefined, manualTitle, manualContent, 'draft')
   }
 
   const isAgentMode = !!(session as any).isAgentMode || !!(session as any).agentEventStream?.length
